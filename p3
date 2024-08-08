@@ -1,0 +1,138 @@
+#include <stdio.h>
+
+#define MAX_TERMS 100
+
+struct poly {
+    int coeff;
+    int expo;
+} p1[MAX_TERMS], p2[MAX_TERMS], p3[MAX_TERMS];
+
+int readPoly(struct poly []);
+int combineLikeTerms(struct poly[], int);
+int addPoly(struct poly[], struct poly[], int, int, struct poly[]);
+void displayPoly(struct poly[], int);
+void sortPoly(struct poly[], int);
+
+int main() {
+    int t1, t2, t3;
+
+    t1 = readPoly(p1);
+    t1 = combineLikeTerms(p1, t1);  // Combine like terms in p1
+    printf("\nFirst polynomial: ");
+    displayPoly(p1, t1);
+
+    t2 = readPoly(p2);
+    t2 = combineLikeTerms(p2, t2);  // Combine like terms in p2
+    printf("\nSecond polynomial: ");
+    displayPoly(p2, t2);
+
+    t3 = addPoly(p1, p2, t1, t2, p3);
+    t3 = combineLikeTerms(p3, t3);  // Combine like terms in p3
+    sortPoly(p3, t3);
+
+    printf("\nResultant polynomial: ");
+    displayPoly(p3, t3);
+
+    return 0;
+}
+
+int readPoly(struct poly p[]) { 
+    int t1, i;
+    printf("\nEnter the total number of terms in the polynomial: ");
+    scanf("%d", &t1);
+    if (t1 > MAX_TERMS) {
+        printf("Error: Number of terms exceeds the maximum allowed (%d).\n", MAX_TERMS);
+        return 0;
+    }
+    printf("\nEnter the COEFFICIENT and EXPONENT in DESCENDING ORDER\n");
+    for (i = 0; i < t1; i++) {
+        printf("Enter the coefficient(%d): ", i + 1);
+        scanf("%d", &p[i].coeff);
+        printf("Enter the exponent(%d): ", i + 1);
+        scanf("%d", &p[i].expo);
+    }
+    return t1;
+}
+
+int combineLikeTerms(struct poly p[], int term) {
+    int i, j, k = 0;
+    struct poly temp[MAX_TERMS];
+
+    for (i = 0; i < term; i++) {
+        if (p[i].coeff == 0) continue;
+
+        temp[k] = p[i];
+        for (j = i + 1; j < term; j++) {
+            if (p[j].expo == temp[k].expo) {
+                temp[k].coeff += p[j].coeff;
+                p[j].coeff = 0;  // Mark as processed
+            }
+        }
+        k++;
+    }
+
+    // Copy combined terms back to the original array
+    for (i = 0; i < k; i++) {
+        p[i] = temp[i];
+    }
+
+    return k;
+}
+
+void displayPoly(struct poly p[], int term) {
+    int k;
+    if (term == 0) {
+        printf("0");
+        return;
+    }
+    for (k = 0; k < term; k++) {
+        if (p[k].coeff != 0) {
+            if (k > 0 && p[k].coeff > 0) {
+                printf(" + ");
+            }
+            printf("%d(x^%d)", p[k].coeff, p[k].expo);
+        }
+    }
+    printf("\n");
+}
+
+int addPoly(struct poly p1[], struct poly p2[], int t1, int t2, struct poly p3[]) {
+    int i = 0, j = 0, k = 0;
+    while (i < t1 && j < t2) {
+        if (p1[i].expo == p2[j].expo) {
+            int sum = p1[i].coeff + p2[j].coeff;
+            if (sum != 0) {  // Only add non-zero results
+                p3[k].coeff = sum;
+                p3[k].expo = p1[i].expo;
+                k++;
+            }
+            i++;
+            j++;
+        } else if (p1[i].expo > p2[j].expo) {
+            p3[k++] = p1[i++];
+        } else {
+            p3[k++] = p2[j++];
+        }
+    }
+    while (i < t1) {
+        p3[k++] = p1[i++];
+    }
+    while (j < t2) {
+        p3[k++] = p2[j++];
+    }
+    return k;
+}
+
+void sortPoly(struct poly p[], int term) {
+    int i, j;
+    struct poly temp;
+    for (i = 0; i < term - 1; i++) {
+        for (j = i + 1; j < term; j++) {
+            if (p[i].expo < p[j].expo) {
+                temp = p[i];
+                p[i] = p[j];
+                p[j] = temp;
+            }
+        }
+    }
+}
